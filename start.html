@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Challenge Quiz Game</title>
+<style>
+  body, html {
+    margin: 0; padding: 0;
+    height: 100%;
+    background: #0a0a12;
+    color: #eee;
+    font-family: 'Orbitron', monospace, sans-serif;
+  }
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #11111f, #05050a);
+  }
+  header, button, #levels-grid, #question, #hint, #feedback {
+    user-select: none;
+  }
+  button {
+    font-family: 'Orbitron', monospace, sans-serif;
+    background: #0ff;
+    border: none;
+    padding: 1rem 1.5rem;
+    margin: 1rem auto;
+    border-radius: 12px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #000;
+    cursor: pointer;
+  }
+  button:active {
+    background: #08c;
+  }
+  #home, #levels, #challenge {
+    flex-grow: 1;
+    display: none;
+    padding: 1rem 1rem 2rem;
+    overflow-y: auto;
+  }
+  #home.active, #levels.active, #challenge.active {
+    display: flex;
+    flex-direction: column;
+  }
+  .levels-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(48px,1fr));
+    gap: 10px;
+  }
+  .level-box {
+    background: #222233;
+    border-radius: 10px;
+    color: #aaa;
+    text-align: center;
+    line-height: 48px;
+    font-weight: 700;
+    font-size: 1.15rem;
+    cursor: pointer;
+  }
+  .level-box.locked {
+    cursor: not-allowed;
+    color: #444455;
+    background: #11111a;
+  }
+  .level-box.completed {
+    background: #0f4;
+    color: #010;
+  }
+  .level-box.current {
+    background: #08f;
+    color: #cff;
+  }
+  #challenge header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    color: #0ff;
+  }
+  #challenge header button {
+    background: transparent;
+    color: #0ff;
+    font-size: 1.1rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+  }
+  #challenge header button:active {
+    color: #08c;
+  }
+  #question {
+    font-size: 1.4rem;
+    margin-bottom: 0.4rem;
+    min-height: 60px;
+  }
+  #hint {
+    font-size: 1rem;
+    color: #0fa;
+    margin-bottom: 1rem;
+    font-style: italic;
+  }
+  /* SIMPLE, PLAIN INPUT: NO FONT CHANGES, NO COLORS, NO SHADOWS */
+  #answer-input {
+    all: unset; /* resets all styles */
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto 1rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    font-family: inherit;
+    color: black;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+  }
+  #answer-input:focus {
+    outline: 2px solid #0ff;
+  }
+  #submit-btn {
+    background: #0ff;
+    color: #000;
+    font-weight: 700;
+    width: 140px;
+    margin: 0 auto;
+    padding: 0.8rem;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  #submit-btn:active {
+    background: #08c;
+  }
+  #feedback {
+    margin-top: 0.8rem;
+    text-align: center;
+    font-size: 1rem;
+    min-height: 24px;
+  }
+  #feedback.wrong {
+    color: #f44;
+  }
+  #feedback.correct {
+    color: #0f4;
+  }
+
+  #answer-container {
+  margin: 20px auto;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HOME SCREEN -->
+  <section id="home" class="active" aria-label="Home Screen">
+    <h1 style="text-align:center; font-size:2rem; margin-top: 3rem; color:#0ff;">Challenge Quiz Game</h1>
+    <button id="start-btn" aria-label="Start Solving Challenges">Start Solving Challenges</button>
+  </section>
+
+  <!-- LEVELS SCREEN -->
+  <section id="levels" aria-label="Levels Screen" tabindex="0">
+    <header>Levels</header>
+    <div class="levels-grid" id="levels-grid" aria-live="polite" aria-relevant="additions"></div>
+  </section>
+
+  <!-- CHALLENGE SCREEN -->
+  <section id="challenge" aria-label="Challenge Screen">
+    <header>
+      <button id="back-to-levels" aria-label="Back to Levels">← Back</button>
+      <div id="level-indicator" aria-live="polite" aria-atomic="true">Level 1 / 250</div>
+      <div style="width: 50px;"></div>
+    </header>
+    <main>
+      <div id="question" role="heading" aria-level="2"></div>
+      <div id="hint"></div>
+      <input
+        id="answer-input"
+        type="text"
+        inputmode="text"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="none"
+        spellcheck="false"
+        aria-label="Type your answer here"
+      />
+      <button id="submit-btn" aria-label="Submit Answer">Submit</button>
+      <button id="answerBtn">Answer</button>
+      <div id="feedback" role="alert" aria-live="assertive"></div>
+      <div id="answer-container">
+</div>
+</div>
+</div>
+</div>
+
+    </main>
+  </section>
+
+<script>
+(() => {
+  const questions = [
+    {
+      question: "What is 36 − 12?",
+      hint: "Subtract 12 from 36.",
+      answer: "24"
+    },
+    {
+      question: "What is 7 × 6?",
+      hint: "Multiply 7 by 6.",
+      answer: "42"
+    },
+    {
+      question: "If you have 24 apples and give away 9, how many do you have left?",
+      hint: "Subtract 9 from 24.",
+      answer: "15"
+    },
+    {
+      question: "What is 56 ÷ 8?",
+      hint: "Divide 56 by 8.",
+      answer: "7"
+    },
+    {
+      question: "What number comes next in the pattern: 3, 6, 9, 12, ___?",
+      hint: "Numbers increase by 3 each time.",
+      answer: "15"
+    },
+    {
+  question: "What is 15 + 28?",
+  hint: "Add 15 and 28.",
+  answer: "43"
+},
+{
+  question: "Multiply 5 by 9.",
+  hint: "5 times 9 equals?",
+  answer: "45"
+},
+{
+  question: "What is 63 − 27?",
+  hint: "Subtract 27 from 63.",
+  answer: "36"
+},
+{
+  question: "Divide 81 by 9.",
+  hint: "How many times does 9 fit into 81?",
+  answer: "9"
+},
+{
+  question: "If you have 40 candies and eat 12, how many are left?",
+  hint: "Subtract 12 from 40.",
+  answer: "28"
+},
+{
+  question: "What is 8 × 7?",
+  hint: "Multiply 8 by 7.",
+  answer: "56"
+},
+{
+  question: "What is half of 64?",
+  hint: "Divide 64 by 2.",
+  answer: "32"
+},
+{
+  question: "Add 45 and 34.",
+  hint: "Sum of 45 and 34.",
+  answer: "79"
+},
+{
+  question: "What is 100 − 47?",
+  hint: "Subtract 47 from 100.",
+  answer: "53"
+},
+{
+  question: "Multiply 6 by 8.",
+  hint: "6 times 8 equals?",
+  answer: "48"
+},
+{
+  question: "What is 72 ÷ 9?",
+  hint: "Divide 72 by 9.",
+  answer: "8"
+},
+{
+  question: "If you divide 90 by 5, what do you get?",
+  hint: "90 divided into 5 parts.",
+  answer: "18"
+},
+{
+  question: "What number comes next in the sequence: 10, 20, 30, 40, ___?",
+  hint: "Increase by 10 each time.",
+  answer: "50"
+},
+{
+  question: "Subtract 29 from 67.",
+  hint: "67 minus 29.",
+  answer: "38"
+},
+{
+  question: "What is 9 × 9?",
+  hint: "Multiply 9 by 9.",
+  answer: "81"
+},
+{
+  question: "What is 54 ÷ 6?",
+  hint: "Divide 54 by 6.",
+  answer: "9"
+},
+{
+  question: "Add 38 and 27.",
+  hint: "Sum of 38 and 27.",
+  answer: "65"
+},
+{
+  question: "Subtract 18 from 50.",
+  hint: "50 minus 18.",
+  answer: "32"
+},
+{
+  question: "Multiply 4 by 12.",
+  hint: "4 times 12 equals?",
+  answer: "48"
+},
+{
+  question: "What is 88 − 44?",
+  hint: "Subtract 44 from 88.",
+  answer: "44"
+},
+{
+  question: "Divide 56 by 7.",
+  hint: "How many times does 7 fit into 56?",
+  answer: "8"
+},
+{
+  question: "Add 27 and 19.",
+  hint: "Sum of 27 and 19.",
+  answer: "46"
+},
+{
+  question: "Subtract 15 from 85.",
+  hint: "85 minus 15.",
+  answer: "70"
+},
+{
+  question: "Multiply 3 by 15.",
+  hint: "3 times 15 equals?",
+  answer: "45"
+},
+{
+  question: "What is half of 90?",
+  hint: "Divide 90 by 2.",
+  answer: "45"
+},
+{
+  question: "Divide 96 by 12.",
+  hint: "How many times does 12 fit into 96?",
+  answer: "8"
+},
+{
+  question: "Add 33 and 44.",
+  hint: "Sum of 33 and 44.",
+  answer: "77"
+},
+{
+  question: "What is 120 − 65?",
+  hint: "Subtract 65 from 120.",
+  answer: "55"
+},
+{
+  question: "Multiply 7 by 8.",
+  hint: "7 times 8 equals?",
+  answer: "56"
+},
+{
+  question: "What is 56 ÷ 8?",
+  hint: "Divide 56 by 8.",
+  answer: "7"
+},
+{
+  question: "Subtract 22 from 90.",
+  hint: "90 minus 22.",
+  answer: "68"
+},
+{
+  question: "Add 41 and 18.",
+  hint: "Sum of 41 and 18.",
+  answer: "59"
+},
+{
+  question: "What is 10 × 10?",
+  hint: "Multiply 10 by 10.",
+  answer: "100"
+},
+{
+  question: "Divide 72 by 8.",
+  hint: "How many times does 8 fit into 72?",
+  answer: "9"
+},
+{
+  question: "What is 50 − 19?",
+  hint: "Subtract 19 from 50.",
+  answer: "31"
+},
+{
+  question: "Multiply 6 by 7.",
+  hint: "6 times 7 equals?",
+  answer: "42"
+},
+{
+  question: "Add 29 and 56.",
+  hint: "Sum of 29 and 56.",
+  answer: "85"
+},
+{
+  question: "What is 81 ÷ 9?",
+  hint: "Divide 81 by 9.",
+  answer: "9"
+},
+{
+  question: "Subtract 30 from 78.",
+  hint: "78 minus 30.",
+  answer: "48"
+},
+{
+  question: "Multiply 5 by 13.",
+  hint: "5 times 13 equals?",
+  answer: "65"
+},
+{
+  question: "What is 64 ÷ 8?",
+  hint: "Divide 64 by 8.",
+  answer: "8"
+},
+{
+  question: "Add 36 and 22.",
+  hint: "Sum of 36 and 22.",
+  answer: "58"
+},
+{
+  question: "Subtract 17 from 60.",
+  hint: "60 minus 17.",
+  answer: "43"
+},
+{
+  question: "Multiply 9 by 4.",
+  hint: "9 times 4 equals?",
+  answer: "36"
+},
+{
+  question: "What is half of 56?",
+  hint: "Divide 56 by 2.",
+  answer: "28"
+},
+{
+  question: "What is the LCM of 4 and 6?",
+  hint: "Find the smallest number divisible by both 4 and 6.",
+  answer: "12"
+},
+{
+  question: "Simplify: 3/4 + 1/4",
+  hint: "Add the numerators since denominators are the same.",
+  answer: "1"
+},
+{
+  question: "Convert 0.75 to a fraction.",
+  hint: "0.75 = 75/100 and simplify.",
+  answer: "3/4"
+},
+{
+  question: "Find the HCF of 12 and 18.",
+  hint: "Greatest number dividing both 12 and 18.",
+  answer: "6"
+},
+{
+  question: "What is 25% of 80?",
+  hint: "25% = 1/4 of 80.",
+  answer: "20"
+},
+{
+  question: "Add: 1.2 + 3.45",
+  hint: "Align decimal points and add.",
+  answer: "4.65"
+},
+{
+  question: "Subtract: 5.6 − 2.1",
+  hint: "Align decimal points and subtract.",
+  answer: "3.5"
+},
+{
+  question: "Multiply: 7 × 0.5",
+  hint: "Half of 7.",
+  answer: "3.5"
+},
+{
+  question: "Divide: 9 ÷ 0.3",
+  hint: "0.3 is 3/10, so multiply 9 by 10/3.",
+  answer: "30"
+},
+{
+  question: "What is the area of a rectangle with length 7 cm and width 5 cm?",
+  hint: "Area = length × width.",
+  answer: "35 cm²"
+},
+{
+  question: "Simplify: 5/6 − 1/3",
+  hint: "Convert 1/3 to 2/6 and subtract.",
+  answer: "1/2"
+},
+{
+  question: "Find the value of 3² + 4²",
+  hint: "Square the numbers then add.",
+  answer: "25"
+},
+{
+  question: "What is 60% of 150?",
+  hint: "60% = 0.6 times 150.",
+  answer: "90"
+},
+{
+  question: "Add: 2/5 + 3/10",
+  hint: "Convert 2/5 to 4/10 then add.",
+  answer: "7/10"
+},
+{
+  question: "Convert 7/8 to decimal.",
+  hint: "Divide 7 by 8.",
+  answer: "0.875"
+},
+{
+  question: "Multiply: 0.25 × 16",
+  hint: "Quarter of 16.",
+  answer: "4"
+},
+{
+  question: "Find the perimeter of a square with side 9 cm.",
+  hint: "Perimeter = 4 × side.",
+  answer: "36 cm"
+},
+{
+  question: "Simplify: 3/5 × 10",
+  hint: "Multiply numerator by 10 and divide by denominator.",
+  answer: "6"
+},
+{
+  question: "What is 45 ÷ 0.9?",
+  hint: "0.9 = 9/10, so multiply 45 by 10/9.",
+  answer: "50"
+},
+{
+  question: "Subtract: 7.25 − 4.75",
+  hint: "Align decimal points and subtract.",
+  answer: "2.5"
+},
+{
+  question: "Find the area of a triangle with base 6 cm and height 4 cm.",
+  hint: "Area = 1/2 × base × height.",
+  answer: "12 cm²"
+},
+{
+  question: "Find the LCM of 8 and 12.",
+  hint: "Smallest number divisible by both 8 and 12.",
+  answer: "24"
+},
+{
+  question: "Simplify: 2/3 + 1/6",
+  hint: "Convert 2/3 to 4/6 then add.",
+  answer: "5/6"
+},
+{
+  question: "Multiply: 9 × 0.6",
+  hint: "60% of 9.",
+  answer: "5.4"
+},
+{
+  question: "Divide: 15 ÷ 0.5",
+  hint: "Half of what equals 15?",
+  answer: "30"
+},
+{
+  question: "Convert 3/5 to decimal.",
+  hint: "Divide 3 by 5.",
+  answer: "0.6"
+},
+{
+  question: "Find the perimeter of a rectangle with length 8 cm and width 3 cm.",
+  hint: "Perimeter = 2 × (length + width).",
+  answer: "22 cm"
+},
+{
+  question: "Add: 0.45 + 1.35",
+  hint: "Align decimal points and add.",
+  answer: "1.8"
+},
+{
+  question: "Subtract: 6.7 − 3.2",
+  hint: "Align decimal points and subtract.",
+  answer: "3.5"
+},
+{
+  question: "Multiply: 4.5 × 2",
+  hint: "Double 4.5.",
+  answer: "9"
+},
+{
+  question: "What is 20% of 250?",
+  hint: "20% = 1/5 of 250.",
+  answer: "50"
+},
+{
+  question: "Find the HCF of 16 and 20.",
+  hint: "Greatest number dividing both 16 and 20.",
+  answer: "4"
+},
+{
+  question: "Simplify: 5/8 − 1/4",
+  hint: "Convert 1/4 to 2/8 then subtract.",
+  answer: "3/8"
+},
+{
+  question: "Multiply: 7 × 0.25",
+  hint: "Quarter of 7.",
+  answer: "1.75"
+},
+{
+  question: "Divide: 18 ÷ 0.6",
+  hint: "0.6 = 3/5, so multiply 18 by 5/3.",
+  answer: "30"
+},
+{
+  question: "What is the area of a square with side 11 cm?",
+  hint: "Area = side × side.",
+  answer: "121 cm²"
+},
+{
+  question: "Add: 3/4 + 5/8",
+  hint: "Convert 3/4 to 6/8 then add.",
+  answer: "11/8 or 1 3/8"
+},
+{
+  question: "Subtract: 2.9 − 1.4",
+  hint: "Align decimal points and subtract.",
+  answer: "1.5"
+},
+{
+  question: "Multiply: 6 × 0.8",
+  hint: "80% of 6.",
+  answer: "4.8"
+},
+{
+  question: "Divide: 24 ÷ 0.4",
+  hint: "0.4 = 2/5, so multiply 24 by 5/2.",
+  answer: "60"
+},
+{
+  question: "Find the perimeter of a triangle with sides 5 cm, 7 cm, and 9 cm.",
+  hint: "Add all three sides.",
+  answer: "21 cm"
+},
+{
+  question: "What is 30% of 90?",
+  hint: "30% = 0.3 times 90.",
+  answer: "27"
+},
+{
+  question: "Simplify: 7/10 + 2/5",
+  hint: "Convert 2/5 to 4/10 then add.",
+  answer: "11/10 or 1 1/10"
+},
+{
+  question: "Multiply: 5 × 0.75",
+  hint: "3/4 of 5.",
+  answer: "3.75"
+},
+{
+  question: "Divide: 50 ÷ 0.25",
+  hint: "0.25 is 1/4, so multiply 50 by 4.",
+  answer: "200"
+},
+{
+  question: "Add: 4.4 + 3.6",
+  hint: "Align decimal points and add.",
+  answer: "8.0"
+},
+{
+  question: "Subtract: 10.5 − 6.2",
+  hint: "Align decimal points and subtract.",
+  answer: "4.3"
+},
+{
+  question: "What is the area of a circle with radius 7 cm? (Use π = 22/7)",
+  hint: "Area = π × radius².",
+  answer: "154 cm²"
+},
+{
+  question: "Find the LCM of 5 and 10.",
+  hint: "Smallest number divisible by both 5 and 10.",
+  answer: "10"
+},
+{
+  question: "What is 1/3 of 90?",
+  hint: "Divide 90 by 3.",
+  answer: "30"
+},
+{
+  question: "What is 25% of 240?",
+  hint: "25% means one-quarter of 240.",
+  answer: "60"
+},
+{
+  question: "The average of 5 numbers is 20. What is their total sum?",
+  hint: "Multiply average by the number of values.",
+  answer: "100"
+},
+{
+  question: "If a worker completes a task in 6 hours, how much of the task does he complete in 2 hours?",
+  hint: "Fraction of work done = (time worked) ÷ (total time).",
+  answer: "1/3"
+},
+{
+  question: "What is 15% of 180?",
+  hint: "Convert 15% to decimal and multiply by 180.",
+  answer: "27"
+},
+{
+  question: "If 3 workers take 12 hours to complete a job, how long will 6 workers take?",
+  hint: "More workers means less time, inverse ratio.",
+  answer: "6 hours"
+},
+{
+  question: "Find the average of 10, 15, 20, 25, and 30.",
+  hint: "Add all numbers and divide by 5.",
+  answer: "20"
+},
+{
+  question: "A shirt originally costs $40. If it is sold at 25% discount, what is the sale price?",
+  hint: "Subtract 25% of 40 from 40.",
+  answer: "$30"
+},
+{
+  question: "Find 60% of 90.",
+  hint: "60% = 0.6 × 90.",
+  answer: "54"
+},
+{
+  question: "If a car travels 150 km in 3 hours, what is its speed?",
+  hint: "Speed = distance ÷ time.",
+  answer: "50 km/h"
+},
+{
+  question: "The price of a book increases from $50 to $60. What is the percentage increase?",
+  hint: "((New - Old) ÷ Old) × 100.",
+  answer: "20%"
+},
+{
+  question: "Find the average of 12, 18, 24, 30, and 36.",
+  hint: "Add all and divide by 5.",
+  answer: "24"
+},
+{
+  question: "A tap can fill a tank in 4 hours. How much of the tank is filled in 1 hour?",
+  hint: "Fraction filled = 1/4.",
+  answer: "1/4"
+},
+{
+  question: "If 5 pencils cost $15, what is the cost of one pencil?",
+  hint: "Divide total cost by number of pencils.",
+  answer: "$3"
+},
+{
+  question: "Find 40% of 125.",
+  hint: "40% = 0.4 × 125.",
+  answer: "50"
+},
+{
+  question: "A worker is paid $180 for 12 hours of work. What is his hourly wage?",
+  hint: "Divide total pay by hours worked.",
+  answer: "$15/hour"
+},
+{
+  question: "What is 75% of 200?",
+  hint: "75% = 3/4 of 200.",
+  answer: "150"
+},
+{
+  question: "If a man runs 5 km in 30 minutes, what is his speed in km/h?",
+  hint: "Convert time to hours and calculate speed.",
+  answer: "10 km/h"
+},
+{
+  question: "Find the average of 5, 10, 15, 20, and 25.",
+  hint: "Add all numbers and divide by 5.",
+  answer: "15"
+},
+{
+  question: "If 7 workers complete a task in 14 days, how long will 14 workers take?",
+  hint: "More workers means fewer days, inverse ratio.",
+  answer: "7 days"
+},
+{
+  question: "A jacket costs $80 and is sold for $96. What is the percentage profit?",
+  hint: "((Selling price - Cost price) ÷ Cost price) × 100.",
+  answer: "20%"
+},
+{
+  question: "Find 30% of 60.",
+  hint: "30% = 0.3 × 60.",
+  answer: "18"
+},
+{
+  question: "The sum of 3 numbers is 75. If two numbers are 20 and 25, what is the third?",
+  hint: "Subtract sum of two numbers from total.",
+  answer: "30"
+},
+{
+  question: "If a car travels 120 km in 2 hours, what is its speed?",
+  hint: "Speed = distance ÷ time.",
+  answer: "60 km/h"
+},
+{
+  question: "A shopkeeper sells an article for $250 at 25% profit. What was the cost price?",
+  hint: "Cost price = Selling price ÷ (1 + profit%).",
+  answer: "$200"
+},
+{
+  question: "Find the average of 22, 28, 34, 40, and 46.",
+  hint: "Add all and divide by 5.",
+  answer: "34"
+},
+{
+  question: "A tap can fill a tank in 5 hours. Another tap can fill the same tank in 3 hours. How long will both taps take working together?",
+  hint: "Add their rates (1/5 + 1/3) and find combined time.",
+  answer: "1.875 hours (1 hour 52.5 minutes)"
+},
+{
+  question: "If a man works 8 hours a day, how many hours will he work in 5 days?",
+  hint: "Multiply hours per day by number of days.",
+  answer: "40 hours"
+},
+{
+  question: "What is 120% of 150?",
+  hint: "120% = 1.2 × 150.",
+  answer: "180"
+},
+{
+  question: "If the price of a pen is reduced from $5 to $4, what is the percentage decrease?",
+  hint: "((Old - New) ÷ Old) × 100.",
+  answer: "20%"
+},
+{
+  question: "Find the average of 18, 22, 26, 30, and 34.",
+  hint: "Add all and divide by 5.",
+  answer: "26"
+},
+{
+  question: "A worker completes 3/4 of a job in 6 days. How long will the whole job take?",
+  hint: "Total time = (given time) ÷ (fraction completed).",
+  answer: "8 days"
+},
+{
+  question: "What is the simple interest on $500 for 2 years at 5% per annum?",
+  hint: "Interest = (Principal × Rate × Time) ÷ 100.",
+  answer: "$50"
+},
+{
+  question: "If a train travels 300 km in 4 hours, what is its average speed?",
+  hint: "Speed = distance ÷ time.",
+  answer: "75 km/h"
+},
+{
+  question: "Find the HCF of 36 and 48.",
+  hint: "Greatest number dividing both 36 and 48.",
+  answer: "12"
+},
+{
+  question: "What is 5/8 + 3/4?",
+  hint: "Convert 3/4 to 6/8 then add.",
+  answer: "1 1/8"
+},
+{
+  question: "A rectangle has length 15 cm and width 10 cm. Find its area.",
+  hint: "Area = length × width.",
+  answer: "150 cm²"
+},
+{
+  question: "A man runs 5 km in 25 minutes. What is his speed in km/h?",
+  hint: "Convert minutes to hours and calculate speed.",
+  answer: "12 km/h"
+},
+{
+  question: "Find the average of 30, 40, 50, 60, and 70.",
+  hint: "Add all numbers and divide by 5.",
+  answer: "50"
+},
+{
+  question: "What is 7 × 8?",
+  hint: "Multiply 7 by 8.",
+  answer: "56"
+},
+{
+  question: "Subtract 75 from 150.",
+  hint: "150 minus 75.",
+  answer: "75"
+},
+{
+  question: "What is 2/5 of 100?",
+  hint: "Multiply 2/5 by 100.",
+  answer: "40"
+},
+{
+  question: "Find the perimeter of a square with side 12 cm.",
+  hint: "Perimeter = 4 × side.",
+  answer: "48 cm"
+},
+{
+  question: "If 9 workers complete a job in 16 days, how long will 12 workers take?",
+  hint: "Use inverse proportion.",
+  answer: "12 days"
+},
+{
+  question: "Add 3.75 and 4.25.",
+  hint: "Align decimal points and add.",
+  answer: "8.0"
+},
+{
+  question: "Subtract 8.5 from 14.2.",
+  hint: "Align decimal points and subtract.",
+  answer: "5.7"
+},
+{
+  question: "Multiply 6.3 by 4.",
+  hint: "Multiply 6.3 by 4.",
+  answer: "25.2"
+},
+{
+  question: "Divide 84 by 7.",
+  hint: "How many times does 7 fit into 84?",
+  answer: "12"
+},
+{
+  question: "Find the simple interest on $600 for 3 years at 4% per annum.",
+  hint: "Interest = (Principal × Rate × Time) ÷ 100.",
+  answer: "$72"
+},
+{
+  question: "A triangle has base 10 cm and height 5 cm. Find its area.",
+  hint: "Area = 1/2 × base × height.",
+  answer: "25 cm²"
+},
+{
+  question: "Find the LCM of 9 and 12.",
+  hint: "Smallest number divisible by both 9 and 12.",
+  answer: "36"
+},
+{
+  question: "Solve for x: 3x + 5 = 20",
+  hint: "Subtract 5 and then divide by 3.",
+  answer: "5"
+},
+{
+  question: "The ratio of boys to girls in a class is 3:4. If there are 21 boys, how many girls are there?",
+  hint: "Use ratio to find the number of girls.",
+  answer: "28"
+},
+{
+  question: "A train travels at 60 km/h for 3 hours. How far does it go?",
+  hint: "Distance = speed × time.",
+  answer: "180 km"
+},
+{
+  question: "If 5y − 15 = 10, find y.",
+  hint: "Add 15 and divide by 5.",
+  answer: "5"
+},
+{
+  question: "A car travels 240 km in 4 hours. What is its average speed?",
+  hint: "Speed = distance ÷ time.",
+  answer: "60 km/h"
+},
+{
+  question: "Simplify: (12 × 3) ÷ 4",
+  hint: "Multiply then divide.",
+  answer: "9"
+},
+{
+  question: "If the price of an item increases from $80 to $100, what is the percentage increase?",
+  hint: "((New - Old) ÷ Old) × 100.",
+  answer: "25%"
+},
+{
+  question: "Find the HCF of 48 and 60.",
+  hint: "Greatest number dividing both.",
+  answer: "12"
+},
+{
+  question: "If a rectangle has length 14 cm and width 9 cm, find its area.",
+  hint: "Area = length × width.",
+  answer: "126 cm²"
+},
+{
+  question: "Solve for x: 2x − 7 = 13",
+  hint: "Add 7 and divide by 2.",
+  answer: "10"
+},
+{
+  question: "The speed of a boat in still water is 20 km/h. It takes 3 hours to go upstream and 2 hours downstream for a certain distance. Find the speed of the stream.",
+  hint: "Use upstream and downstream speed formulas.",
+  answer: "2 km/h"
+},
+{
+  question: "Find the average of 48, 52, 56, 60, and 64.",
+  hint: "Sum and divide by 5.",
+  answer: "56"
+},
+{
+  question: "What is 35% of 220?",
+  hint: "Multiply 0.35 by 220.",
+  answer: "77"
+},
+{
+  question: "Solve for y: 4y + 6 = 30",
+  hint: "Subtract 6 and divide by 4.",
+  answer: "6"
+},
+{
+  question: "A container holds 24 liters of water. If 6 liters are removed, what fraction remains?",
+  hint: "Fraction remaining = (water left) ÷ (total water).",
+  answer: "3/4"
+},
+{
+  question: "Find the perimeter of a triangle with sides 7 cm, 9 cm, and 12 cm.",
+  hint: "Sum of all sides.",
+  answer: "28 cm"
+},
+{
+  question: "The ratio of ages of two brothers is 5:7. If the elder brother is 21 years old, find the younger brother’s age.",
+  hint: "Use ratio and proportion.",
+  answer: "15"
+},
+{
+  question: "What is the simple interest on $800 for 3 years at 6% per annum?",
+  hint: "Interest = (Principal × Rate × Time) ÷ 100.",
+  answer: "$144"
+},
+{
+  question: "If a train travels 180 km in 3 hours, what is its speed in km/h?",
+  hint: "Speed = distance ÷ time.",
+  answer: "60"
+},
+{
+  question: "Simplify: 3/4 × 8/9",
+  hint: "Multiply numerators and denominators.",
+  answer: "2/3"
+},
+{
+  question: "A car’s speed increases from 60 km/h to 75 km/h. What is the percentage increase?",
+  hint: "((New - Old) ÷ Old) × 100.",
+  answer: "25%"
+},
+{
+  question: "Solve for x: 5x/2 = 20",
+  hint: "Multiply both sides by 2 and divide by 5.",
+  answer: "8"
+},
+{
+  question: "Find the area of a circle with radius 7 cm. Use π = 22/7.",
+  hint: "Area = π × r².",
+  answer: "154 cm²"
+},
+{
+  question: "A man walks 3 km north, then 4 km east. How far is he from the starting point?",
+  hint: "Use Pythagoras theorem.",
+  answer: "5 km"
+},
+{
+  question: "Find the HCF of 54 and 72.",
+  hint: "Greatest number dividing both.",
+  answer: "18"
+},
+{
+  question: "The average of five numbers is 32. Four numbers are 28, 35, 30, and 34. Find the fifth number.",
+  hint: "Multiply average by 5 and subtract sum of four numbers.",
+  answer: "31"
+},
+{
+  question: "Simplify: (15 − 5) × (9 ÷ 3)",
+  hint: "Solve inside parentheses first.",
+  answer: "30"
+},
+{
+  question: "Find 45% of 160.",
+  hint: "Multiply 0.45 by 160.",
+  answer: "72"
+},
+{
+  question: "Solve for y: 3y + 4 = 19",
+  hint: "Subtract 4 and divide by 3.",
+  answer: "5"
+},
+{
+  question: "A tank is filled by two pipes in 6 and 8 hours respectively. How long will both pipes take to fill the tank together?",
+  hint: "Add their rates and find combined time.",
+  answer: "3.43 hours (approx)"
+},
+{
+  question: "Find the perimeter of a rectangle with length 18 cm and width 12 cm.",
+  hint: "Perimeter = 2 × (length + width).",
+  answer: "60 cm"
+},
+{
+  question: "What is 7/8 − 3/8?",
+  hint: "Subtract numerators; denominators stay the same.",
+  answer: "1/2"
+},
+{
+  question: "Multiply: 9 × 12",
+  hint: "Multiply 9 by 12.",
+  answer: "108"
+},
+{
+  question: "What is the speed of a car that covers 150 km in 2.5 hours?",
+  hint: "Speed = distance ÷ time.",
+  answer: "60 km/h"
+},
+{
+  question: "Simplify: 5/6 + 1/3",
+  hint: "Convert 1/3 to 2/6 then add.",
+  answer: "7/6 or 1 1/6"
+},
+{
+  question: "Solve for x: 4x − 9 = 11",
+  hint: "Add 9 and divide by 4.",
+  answer: "5"
+},
+{
+  question: "Find the area of a triangle with base 10 cm and height 7 cm.",
+  hint: "Area = 1/2 × base × height.",
+  answer: "35 cm²"
+},
+{
+  question: "If 3 workers can complete a job in 15 days, how long will 5 workers take?",
+  hint: "Use inverse proportion.",
+  answer: "9 days"
+},
+{
+  question: "A number increased by 15 is 50. What is the number?",
+  hint: "Subtract 15 from 50.",
+  answer: "35"
+},
+{
+  question: "What is 1.2 × 3.5?",
+  hint: "Multiply decimals as whole numbers, then place decimal.",
+  answer: "4.2"
+},
+{
+  question: "Find the average of 60, 70, 80, 90, and 100.",
+  hint: "Add all and divide by 5.",
+  answer: "80"
+},
+{
+  question: "Simplify: 2/5 × 15",
+  hint: "Multiply numerator by 15 and divide by denominator.",
+  answer: "6"
+},
+{
+  question: "A man runs 15 km in 1.5 hours. What is his speed?",
+  hint: "Speed = distance ÷ time.",
+  answer: "10 km/h"
+},
+{
+  question: "Solve for y: 6y + 12 = 48",
+  hint: "Subtract 12 and divide by 6.",
+  answer: "6"
+},
+{
+  question: "Find the perimeter of an equilateral triangle with side 13 cm.",
+  hint: "Perimeter = 3 × side.",
+  answer: "39 cm"
+},
+{
+  question: "What is 20% of 350?",
+  hint: "Multiply 0.2 by 350.",
+  answer: "70"
+},
+{
+  question: "If a tank is filled by one pipe in 9 hours, what fraction of the tank is filled in 3 hours?",
+  hint: "Fraction filled = 3/9.",
+  answer: "1/3"
+},
+{
+  question: "Multiply: 0.6 × 0.5",
+  hint: "Multiply and place decimal properly.",
+  answer: "0.3"
+},
+{
+  question: "A bike travels 72 km in 3 hours. What is its speed?",
+  hint: "Speed = distance ÷ time.",
+  answer: "24 km/h"
+},
+{
+  question: "Solve for x: 7x = 56",
+  hint: "Divide both sides by 7.",
+  answer: "8"
+},
+{
+  question: "Solve: x² − 5x + 6 = 0",
+  hint: "Factor the quadratic.",
+  answer: "x=2, 3"
+},
+{
+  question: "Find the distance between points (3, 4) and (7, 1).",
+  hint: "Use distance formula: sqrt((x2−x1)² + (y2−y1)²).",
+  answer: "5"
+},
+{
+  question: "Find the probability of getting a head in a coin toss.",
+  hint: "Outcomes = 2, favorable = 1.",
+  answer: "1/2"
+},
+{
+  question: "Simplify: (3x²y)³",
+  hint: "Apply power to each factor.",
+  answer: "27x⁶y³"
+},
+{
+  question: "Find the equation of a line passing through (2,3) with slope 4.",
+  hint: "Use formula y−y₁=m(x−x₁).",
+  answer: "y = 4x − 5"
+},
+{
+  question: "Factorize: x² − 16",
+  hint: "Difference of squares.",
+  answer: "(x−4)(x+4)"
+},
+{
+  question: "Calculate the surface area of a sphere with radius 7 cm.",
+  hint: "Surface area = 4πr². Use π=22/7.",
+  answer: "616 cm²"
+},
+{
+  question: "Simplify: 2x/3 + 4x/5",
+  hint: "Find common denominator.",
+  answer: "22x/15"
+},
+{
+  question: "Find the roots of x² + 4x + 4 = 0",
+  hint: "Perfect square trinomial.",
+  answer: "x = −2"
+},
+{
+  question: "Find the slope of the line joining points (1, 2) and (3, 8).",
+  hint: "Slope = (y₂−y₁)/(x₂−x₁).",
+  answer: "3"
+},
+{
+  question: "What is the sum of interior angles of a hexagon?",
+  hint: "Sum = (n−2)×180°.",
+  answer: "720°"
+},
+{
+  question: "Simplify: √81 + √25",
+  hint: "Find square roots then add.",
+  answer: "14"
+},
+{
+  question: "If the probability of rain tomorrow is 3/10, what is the probability it will not rain?",
+  hint: "Probability of not rain = 1 − Probability of rain.",
+  answer: "7/10"
+},
+{
+  question: "Solve: 2x + 3 = 7",
+  hint: "Subtract 3 and divide by 2.",
+  answer: "2"
+},
+{
+  question: "Find the volume of a cylinder with radius 5 cm and height 10 cm.",
+  hint: "Volume = πr²h, use π=3.14.",
+  answer: "785 cm³"
+},
+{
+  question: "Expand: (x + 3)(x − 5)",
+  hint: "Multiply using FOIL method.",
+  answer: "x² − 2x − 15"
+},
+{
+  question: "Find the midpoint of points (4, 6) and (10, 14).",
+  hint: "Midpoint = ((x₁ + x₂)/2, (y₁ + y₂)/2).",
+  answer: "(7, 10)"
+},
+{
+  question: "Calculate the perimeter of a circle with diameter 14 cm.",
+  hint: "Perimeter = πd. Use π=22/7.",
+  answer: "44 cm"
+},
+{
+  question: "Simplify: (2x)³",
+  hint: "Cube both 2 and x.",
+  answer: "8x³"
+},
+{
+  question: "Factorize: x² + 5x + 6",
+  hint: "Find two numbers that multiply to 6 and add to 5.",
+  answer: "(x + 2)(x + 3)"
+},
+{
+  question: "Find the equation of a line perpendicular to y = 2x + 3 passing through (1, 2).",
+  hint: "Slope of perpendicular line = negative reciprocal.",
+  answer: "y = −½x + 5/2"
+},
+{
+  question: "Calculate the surface area of a cube with side 6 cm.",
+  hint: "Surface area = 6a².",
+  answer: "216 cm²"
+},
+{
+  question: "Simplify: 5/8 − 3/8",
+  hint: "Subtract numerators.",
+  answer: "1/4"
+},
+{
+  question: "Solve for x: 4x − 7 = 2x + 5",
+  hint: "Bring variables to one side and constants to other.",
+  answer: "6"
+},
+{
+  question: "Find the area of a trapezium with parallel sides 8 cm and 12 cm, and height 5 cm.",
+  hint: "Area = ½ × (sum of parallel sides) × height.",
+  answer: "50 cm²"
+},
+{
+  question: "Find the roots of x² − 4x − 5 = 0",
+  hint: "Factorize or use quadratic formula.",
+  answer: "x = 5, −1"
+},
+{
+  question: "Calculate the circumference of a circle with radius 10 cm.",
+  hint: "Circumference = 2πr. Use π=3.14.",
+  answer: "62.8 cm"
+},
+{
+  question: "Expand: (2x − 3)(x + 4)",
+  hint: "Use distributive property (FOIL).",
+  answer: "2x² + 5x − 12"
+},
+{
+  question: "Simplify: √64 × √9",
+  hint: "Multiply square roots.",
+  answer: "24"
+},
+{
+  question: "If the probability of an event is 1/4, what is the probability of the event not happening?",
+  hint: "Probability of not happening = 1 − probability of happening.",
+  answer: "3/4"
+},
+{
+  question: "Solve: 3(x − 2) = 9",
+  hint: "Divide both sides by 3, then add 2.",
+  answer: "5"
+},
+{
+  question: "Find the volume of a cube with side 8 cm.",
+  hint: "Volume = side³.",
+  answer: "512 cm³"
+},
+{
+  question: "Factorize: x² − 9",
+  hint: "Difference of squares.",
+  answer: "(x − 3)(x + 3)"
+},
+{
+  question: "Find the midpoint of points (−3, 7) and (5, −1).",
+  hint: "Use midpoint formula.",
+  answer: "(1, 3)"
+},
+{
+  question: "Calculate the surface area of a cylinder with radius 4 cm and height 10 cm.",
+  hint: "Surface area = 2πr(h + r). Use π=3.14.",
+  answer: "351.68 cm²"
+},
+{
+  question: "Simplify: 7/10 + 2/5",
+  hint: "Convert to common denominator then add.",
+  answer: "11/10 or 1 1/10"
+},
+{
+  question: "Solve for x: 5x + 3 = 18",
+  hint: "Subtract 3 and divide by 5.",
+  answer: "3"
+},
+{
+  question: "Find the area of a parallelogram with base 12 cm and height 9 cm.",
+  hint: "Area = base × height.",
+  answer: "108 cm²"
+},
+{
+  question: "Calculate the probability of drawing a red card from a standard deck of 52 cards.",
+  hint: "Half the cards are red.",
+  answer: "1/2"
+},
+{
+  question: "Simplify: (x + 1)²",
+  hint: "Expand using binomial formula.",
+  answer: "x² + 2x + 1"
+},
+{
+  question: "Find the roots of x² + 6x + 9 = 0",
+  hint: "Perfect square trinomial.",
+  answer: "x = −3"
+},
+{
+  question: "Find the perimeter of a rectangle with length 15 cm and width 7 cm.",
+  hint: "Perimeter = 2 × (length + width).",
+  answer: "44 cm"
+},
+{
+  question: "Simplify: 3/4 × 2/3",
+  hint: "Multiply numerators and denominators.",
+  answer: "1/2"
+},
+{
+  question: "Solve for y: 2y − 5 = 9",
+  hint: "Add 5 and divide by 2.",
+  answer: "7"
+},
+{
+  question: "Find the volume of a cone with radius 3 cm and height 9 cm.",
+  hint: "Volume = 1/3 π r² h. Use π=3.14.",
+  answer: "84.78 cm³"
+},
+{
+  question: "Expand: (3x + 2)(x − 4)",
+  hint: "Use distributive property (FOIL).",
+  answer: "3x² − 10x − 8"
+},
+{
+  question: "Find the slope of the line passing through points (2, 5) and (6, 13).",
+  hint: "Slope = (y₂ − y₁) / (x₂ − x₁).",
+  answer: "2"
+},
+{
+  question: "Calculate the surface area of a cone with radius 4 cm and slant height 5 cm.",
+  hint: "Surface area = πr(r + l). Use π=3.14.",
+  answer: "113.04 cm²"
+},
+{
+  question: "Simplify: √49 + √16",
+  hint: "Find roots and add.",
+  answer: "11"
+},
+{
+  question: "Find the equation of the line with slope -3 passing through (4, 7).",
+  hint: "Use y−y₁ = m(x−x₁).",
+  answer: "y = −3x + 19"
+},
+{
+  question: "If X is a 5-digit number such that when you multiply X by 9, reverse its digits, and subtract the original X, the result is a perfect square that is also a prime number, what is the value of X?",
+  answer: "There is no known such X under 99999.",
+  explanation: "This is a paradoxical constraint. A number cannot simultaneously result in a perfect square and also be a prime unless it is 1, which is neither prime nor a valid 5-digit number. This level is intentionally designed to be near-impossible to solve realistically without brute force or breaking mathematical logic."
+}
+    // ... add all your questions here
+  ];
+
+  // Fill dummy if less than 250
+  while(questions.length < 250){
+    questions.push({
+      question: `Dummy Question ${questions.length+1}: What is 1 + 1?`,
+      hint: "Add 1 and 1.",
+      answer: "2"
+    });
+  }
+
+  const homeScreen = document.getElementById('home');
+  const startBtn = document.getElementById('start-btn');
+  const levelsScreen = document.getElementById('levels');
+  const levelsGrid = document.getElementById('levels-grid');
+  const challengeScreen = document.getElementById('challenge');
+  const backToLevelsBtn = document.getElementById('back-to-levels');
+  const levelIndicator = document.getElementById('level-indicator');
+  const questionEl = document.getElementById('question');
+  const hintEl = document.getElementById('hint');
+  const answerInput = document.getElementById('answer-input');
+  const submitBtn = document.getElementById('submit-btn');
+  const feedbackEl = document.getElementById('feedback');
+
+  const STORAGE_KEY = "challenge_quiz_progress";
+  let highestCompletedLevel = 0;
+  let currentLevel = 0;
+
+  function loadProgress(){
+    const data = localStorage.getItem(STORAGE_KEY);
+    if(data){
+      try {
+        const obj = JSON.parse(data);
+        if(typeof obj.highestCompletedLevel === "number"){
+          highestCompletedLevel = obj.highestCompletedLevel;
+        }
+      } catch(e){}
+    }
+  }
+  function saveProgress(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({highestCompletedLevel}));
+  }
+
+  function showScreen(screen){
+    [homeScreen, levelsScreen, challengeScreen].forEach(s => s.classList.remove('active'));
+    screen.classList.add('active');
+  }
+
+  function renderLevelsGrid(){
+    levelsGrid.innerHTML = '';
+    for(let i=0; i<questions.length; i++){
+      const box = document.createElement('div');
+      box.classList.add('level-box');
+      box.textContent = (i+1);
+      if(i < highestCompletedLevel){
+        box.classList.add('completed');
+      } else if(i === highestCompletedLevel){
+        box.classList.add('current');
+      } else {
+        box.classList.add('locked');
+      }
+      if(i <= highestCompletedLevel){
+        box.tabIndex = 0;
+        box.addEventListener('click', () => startLevel(i));
+        box.addEventListener('keydown', e => {
+          if(e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            startLevel(i);
+          }
+        });
+      }
+      levelsGrid.appendChild(box);
+    }
+  }
+
+  function startLevel(levelIndex){
+    currentLevel = levelIndex;
+    showChallenge(levelIndex);
+  }
+
+  function showChallenge(levelIndex){
+    const q = questions[levelIndex];
+    levelIndicator.textContent = `Level ${levelIndex+1} / ${questions.length}`;
+    questionEl.textContent = q.question;
+    hintEl.textContent = "🧠 Hint: " + q.hint;
+    answerInput.value = '';
+    feedbackEl.textContent = '';
+    showScreen(challengeScreen);
+    answerInput.focus();
+  }
+
+  function normalizeAnswer(ans){
+    if(typeof ans !== 'string') return '';
+    return ans.trim().toLowerCase();
+  }
+
+  function checkAnswer(userAns, correctAns){
+    const ua = normalizeAnswer(userAns);
+    const ca = normalizeAnswer(correctAns);
+
+    if(!isNaN(ca) && !isNaN(ua)){
+      return Number(ua) === Number(ca);
+    }
+    if(ca.includes('/')){
+      return ua === ca;
+    }
+    return ua === ca;
+  }
+
+  function handleSubmit(){
+    const userAnswer = answerInput.value;
+    if(userAnswer.trim() === ''){
+      showFeedback('Please enter an answer', false);
+      return;
+    }
+    const correctAnswer = questions[currentLevel].answer;
+    if(checkAnswer(userAnswer, correctAnswer)){
+      showFeedback('Correct!', true);
+      if(currentLevel >= highestCompletedLevel){
+        highestCompletedLevel = currentLevel + 1;
+        if(highestCompletedLevel > questions.length - 1) {
+          highestCompletedLevel = questions.length - 1;
+        }
+        saveProgress();
+      }
+      if(currentLevel === questions.length -1){
+        setTimeout(() => {
+          alert("🎉 Congratulations! You completed all challenges!");
+          showLevelsScreen();
+        }, 700);
+      } else {
+        setTimeout(() => {
+          startLevel(currentLevel + 1);
+        }, 700);
+      }
+    } else {
+      showFeedback('Wrong answer. Try again!', false);
+      answerInput.focus();
+    }
+  }
+
+  function showFeedback(msg, correct){
+    feedbackEl.textContent = msg;
+    feedbackEl.classList.toggle('correct', correct);
+    feedbackEl.classList.toggle('wrong', !correct);
+  }
+
+  function showLevelsScreen(){
+    renderLevelsGrid();
+    showScreen(levelsScreen);
+    levelsScreen.focus();
+  }
+
+  function showHomeScreen(){
+    showScreen(homeScreen);
+    startBtn.focus();
+  }
+
+  // <-- FIX HERE: Start from highest unlocked level -->
+  startBtn.addEventListener('click', () => {
+    // Start from the highest completed level (or 0 if none)
+    // Note: highestCompletedLevel is next level unlocked index, so start there.
+    currentLevel = highestCompletedLevel;
+    if(currentLevel >= questions.length){
+      currentLevel = questions.length - 1; // last level if completed all
+    }
+    showChallenge(currentLevel);
+  });
+
+  backToLevelsBtn.addEventListener('click', () => {
+    showLevelsScreen();
+  });
+
+  levelsScreen.addEventListener('keydown', e => {
+    if(e.key === 'Backspace' || e.key === 'Escape'){
+      e.preventDefault();
+      showHomeScreen();
+    }
+  });
+
+  submitBtn.addEventListener('click', handleSubmit);
+  answerInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      handleSubmit();
+    }
+  });
+
+  loadProgress();
+  showHomeScreen();
+
+})();
+
+ document.getElementById("answerBtn").onclick = function () {
+    window.location.href = "premium.html";
+  };
+
+</script>
+</body>
+</html>
+
+

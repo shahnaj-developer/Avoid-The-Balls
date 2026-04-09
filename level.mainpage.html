@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choose Your Challenge</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Space Grotesk', sans-serif;
+      background-color: #111;
+      color: white;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    p.subtext {
+      text-align: center;
+      color: #aaa;
+      margin-bottom: 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 30px 20px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.1);
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 35px rgba(0, 255, 255, 0.3);
+    }
+
+    .icon {
+      font-size: 50px;
+      margin-bottom: 15px;
+      color: #00ffff;
+      filter: drop-shadow(0 0 5px #00ffff);
+    }
+
+    .title {
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .desc {
+      font-size: 0.95rem;
+      color: #ccc;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      text-decoration: none;
+      background: #9b00ff;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .btn:hover {
+      background: #b933ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Choose Your Challenge!</h1>
+  <p class="subtext">Test your wits against our AI Quiz Master. Select a level to begin.</p>
+
+  <div class="grid">
+    <div class="card">
+      <div class="icon">🧸</div>
+      <div class="title">Child’s Play</div>
+      <div class="desc">So easy, even your little sibling could ace it!</div>
+      <a href="level1.html" class="btn">Play Level 1</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">🏫</div>
+      <div class="title">Tiny Brainstormers</div>
+      <div class="desc">For kids who ask way too many questions.</div>
+      <a href="level2.html" class="btn">Play Level 2</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">⚙️</div>
+      <div class="title">Middle School Mastery</div>
+      <div class="desc">Now it’s getting interesting.</div>
+      <a href="level3.html" class="btn">Play Level 3</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">🧠</div>
+      <div class="title">High School Hustle</div>
+      <div class="desc">Only the sharpest teens survive here.</div>
+      <a href="level4.html" class="btn">Play Level 4</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">🧬</div>
+      <div class="title">Genius Mode</div>
+      <div class="desc">You’re officially in Einstein territory.</div>
+      <a href="level5.html" class="btn">Play Level 5</a>
+    </div>
+
+    <div class="card">
+      <div class="icon">🚀</div>
+      <div class="title">Galaxy Brain iq over 200+</div>
+      <div class="desc">Not human? Welcome to the ultimate test.</div>
+      <a href="level6.html" class="btn">Play Level 6</a>
+    </div>
+  </div>
+</body>
+</html>

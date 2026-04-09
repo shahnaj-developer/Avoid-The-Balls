@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About Us - Dodge the Ball</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600;800&display=swap');
+
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+    }
+    body {
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      font-family: 'Poppins', sans-serif;
+      color: #e0e7ff;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+    .container {
+      background: rgba(15, 32, 39, 0.85);
+      border-radius: 20px;
+      max-width: 900px;
+      padding: 3rem 3.5rem;
+      box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+      backdrop-filter: blur(8px);
+      border: 2px solid #0ff;
+      animation: glowPulse 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes glowPulse {
+      0% {
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        border-color: #0ff;
+      }
+      100% {
+        box-shadow: 0 0 40px rgba(0, 255, 255, 1);
+        border-color: #0ffccf;
+      }
+    }
+
+    h1, h2 {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #00fff7;
+      text-shadow: 0 0 8px #00fff7;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-weight: 800;
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    h2 {
+      font-weight: 600;
+      font-size: 1.8rem;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      border-left: 5px solid #00fff7;
+      padding-left: 12px;
+    }
+
+    p {
+      line-height: 1.7;
+      font-weight: 300;
+      font-size: 1.15rem;
+      margin-bottom: 1.5rem;
+      color: #c9e9f7;
+      text-shadow: 0 0 3px #00fff7aa;
+    }
+
+    .highlight {
+      color: #00fff7;
+      font-weight: 700;
+      text-shadow: 0 0 10px #00fff7;
+    }
+
+    .btn {
+      display: inline-block;
+      background: linear-gradient(45deg, #00fff7, #00b2a9);
+      color: #012;
+      font-weight: 700;
+      padding: 0.75rem 2rem;
+      border-radius: 30px;
+      text-decoration: none;
+      box-shadow: 0 0 15px #00fff7cc;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      user-select: none;
+      margin-top: 1rem;
+    }
+    .btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px #00fff7ff;
+    }
+
+    /* Icon style for YouTube */
+    .youtube-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: #ff0000;
+      text-shadow: 0 0 6px #ff0000aa;
+      margin-top: 1rem;
+      user-select: none;
+    }
+    .youtube-link svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+      filter: drop-shadow(0 0 3px #ff0000bb);
+      transition: transform 0.3s ease;
+    }
+    .youtube-link:hover svg {
+      transform: scale(1.3);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container {
+        padding: 2rem 2rem;
+      }
+      h1 {
+        font-size: 2.2rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+      }
+      p {
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="About Dodge the Ball game">
+    <h1>Dodge the Ball</h1>
+
+    <h2>About Us</h2>
+    <p>Welcome to <span class="highlight">Dodge the Ball</span> — the ultimate test of your reflexes, focus, and courage!</p>
+
+    <h2>Our Story</h2>
+    <p>
+      Launched in 2023, <span class="highlight">Dodge the Ball</span> was born out of a vision to create a game that’s not just fun but a challenge that pushes you beyond limits.  
+      We know life often feels like a <span class="highlight">"matrix"</span> — a system full of obstacles, distractions, and setbacks holding you back. But just like in our game, where you dodge, weave, and survive against the odds, we believe everyone can break free from their own matrix and reach new heights.
+    </p>
+    <p>
+      Our team is passionate about crafting an experience that’s simple to pick up but hard to master — just like real success. No paywalls, no catch. Just pure, addictive gameplay and a community that encourages growth, grit, and determination.
+    </p>
+
+    <h2>Our Mission</h2>
+    <p>
+      At <span class="highlight">Dodge the Ball</span>, our mission is clear: to empower <strong>YOU</strong> to dodge life’s hurdles and seize success in every area — without ever asking for a dime.  
+      We want to make great gaming accessible to everyone, everywhere. No barriers, no limits.  
+      We’re here to inspire, entertain, and challenge you, giving you the tools to stay sharp and keep pushing forward — in-game and in life.
+    </p>
+
+    <h2>Why Play Dodge the Ball?</h2>
+    <ul style="list-style: none; margin-left: 0; padding-left: 0; color: #00fff7;">
+      <li>🏆 <strong>Challenging gameplay</strong> that tests your agility and concentration.</li>
+      <li>🚀 <strong>Smooth controls</strong> and intuitive mechanics that anyone can learn.</li>
+      <li>🎯 <strong>Constant updates and fresh content</strong> designed to keep your adrenaline pumping.</li>
+      <li>🌟 <strong>A community built on encouragement and growth</strong> — because we believe success is better when shared.</li>
+    </ul>
+
+    <h2>Connect With Us</h2>
+    <p>
+      Got questions, ideas, or just want to say hi? Reach out anytime at <a href="mailto:tahsin.abc2009@gmail.com" class="highlight" style="text-decoration: underline;">tahsin.abc2009@gmail.com</a>. We love hearing from players like you!
+    </p>
+
+  </main>
+</body>
+</html>

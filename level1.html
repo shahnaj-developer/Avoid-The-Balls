@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Level 1 - Child's Play</title>
+  <style>
+    
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1b1b1b;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .level-intro, .quiz-container {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 30px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .start-btn, .submit-btn, .hint-btn, .show-answer-btn, .watch-ad-btn {
+      background-color: #9c27b0;
+      border: none;
+      padding: 15px;
+      color: white;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .question {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1rem;
+    }
+
+    #hint {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #ccc;
+    }
+
+    #feedback {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      min-height: 1.2em;
+    }
+
+    #feedback.correct {
+      color: #4CAF50;
+    }
+
+    #feedback.wrong {
+      color: #f44336;
+    }
+
+    #coin-count {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: #333;
+      padding: 10px 15px;
+      border-radius: 30px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #coin-icon {
+      font-size: 1.2rem;
+      color: gold;
+    }
+
+    @media (max-width: 500px) {
+      .level-intro, .quiz-container {
+        padding: 20px;
+        border-radius: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="coin-count">
+    <span id="coin-icon">🪙</span>
+    <span id="coins">100</span>
+  </div>
+
+  <div class="level-intro" id="intro">
+    <h2>Level 1: Child's Play</h2>
+    <p>So easy, even your little sibling could ace it!</p>
+    <button class="start-btn" onclick="startQuiz()">Start Level</button>
+  </div>
+
+  <div class="quiz-container" id="quiz" style="display:none">
+    <div class="question" id="question"></div>
+    <input type="text" id="answer" placeholder="Your answer..." autocomplete="off" />
+
+    <div style="display: flex; gap: 10px; margin-top: 15px;">
+      <button class="submit-btn" style="flex: 1;" onclick="checkAnswer()">Submit</button>
+      <button class="hint-btn" style="flex: 1;" onclick="showHint()">💡 Hint (–10)</button>
+    </div>
+
+    <button class="show-answer-btn" style="margin-top: 10px; width: 100%;" onclick="showAnswer()">👁️ Show Answer (–20)</button>
+    <div id="hint"></div>
+    <div id="feedback"></div>
+
+    <button id="watch-ad" class="watch-ad-btn" style="display:none; margin-top: 15px;" onclick="watchAd()">📺 Watch Ad to Earn +40 Coins</button>
+  </div>
+
+  <script>
+    const questions = [
+  { q: "What comes next? 1, 2, 3, ?", a: "4", h: "Count forward." },
+  { q: "What is 6 - 2?", a: "4", h: "Take away 2 from 6." },
+  { q: "How many sides does a square have?", a: "4", h: "Equal sides on each edge." },
+  { q: "What color are bananas?", a: "Yellow", h: "Bright and sweet fruit." },
+  { q: "How many legs does a spider have?", a: "8", h: "More than a dog." },
+  { q: "What shape has no corners?", a: "Circle", h: "It’s round." },
+  { q: "What is 9 - 5?", a: "4", h: "Subtract 5 from 9." },
+  { q: "What do cows give us to drink?", a: "Milk", h: "White and healthy." },
+  { q: "What shape is a clock?", a: "Circle", h: "Round like the sun." },
+  { q: "What is 3 + 6?", a: "9", h: "Add them up." },
+
+  { q: "What color is the sun in drawings?", a: "Yellow", h: "Bright and shiny." },
+  { q: "How many legs does a cat have?", a: "4", h: "Same as a dog." },
+  { q: "What shape has 4 unequal sides?", a: "Rectangle", h: "Two long, two short." },
+  { q: "What is 7 - 3?", a: "4", h: "Subtract them." },
+  { q: "What animal barks?", a: "Dog", h: "It wags its tail." },
+  { q: "What color is grass?", a: "Green", h: "Grows in fields." },
+  { q: "What is 10 - 4?", a: "6", h: "Subtract 4 from 10." },
+  { q: "What animal says 'meow'?", a: "Cat", h: "Loves milk and naps." },
+  { q: "How many sides does a triangle have?", a: "3", h: "Three corners." },
+  { q: "What color are strawberries?", a: "Red", h: "Sweet and juicy." },
+
+  { q: "What is 4 + 4?", a: "8", h: "Double of 4." },
+  { q: "What do chickens lay?", a: "Eggs", h: "Breakfast food." },
+  { q: "What color are clouds?", a: "White", h: "Fluffy and light." },
+  { q: "What shape is a pizza?", a: "Circle", h: "Round and yummy." },
+  { q: "What is 6 + 2?", a: "8", h: "Simple addition." },
+  { q: "What animal has a trunk?", a: "Elephant", h: "Very big and gray." },
+  { q: "What color are apples?", a: "Red", h: "Or green sometimes!" },
+  { q: "What shape has 5 sides?", a: "Pentagon", h: "More than 4, less than 6." },
+  { q: "How many legs does an insect have?", a: "6", h: "More than 4, less than 8." },
+  { q: "What is 5 + 2?", a: "7", h: "Count up from 5." },
+
+  { q: "What color are carrots?", a: "Orange", h: "Bugs Bunny eats it." },
+  { q: "What is 10 - 1?", a: "9", h: "One less than 10." },
+  { q: "What shape has 6 sides?", a: "Hexagon", h: "Used in honeycombs." },
+  { q: "What animal lives in water and quacks?", a: "Duck", h: "Swims a lot." },
+  { q: "What is 7 + 1?", a: "8", h: "Next after 7." },
+  { q: "What animal has black and white stripes?", a: "Zebra", h: "Looks like a horse." },
+  { q: "What shape has 8 sides?", a: "Octagon", h: "Like a stop sign." },
+  { q: "What color is a lemon?", a: "Yellow", h: "Sour and bright." },
+  { q: "What is 9 - 6?", a: "3", h: "Take 6 away." },
+  { q: "What animal has a long neck?", a: "Giraffe", h: "Tallest land animal." },
+
+  { q: "What color is the ocean?", a: "Blue", h: "Same as the sky." },
+  { q: "What is 4 + 5?", a: "9", h: "Add them." },
+  { q: "What shape looks like an egg?", a: "Oval", h: "Not quite a circle." },
+  { q: "What animal hops and loves carrots?", a: "Rabbit", h: "Also called bunny." },
+  { q: "What is 1 + 6?", a: "7", h: "Easy math." },
+  { q: "What color are grapes?", a: "Purple", h: "Or green too!" },
+  { q: "How many wheels does a car have?", a: "4", h: "Standard vehicle." },
+  { q: "What shape has 10 sides?", a: "Decagon", h: "More than an octagon." },
+  { q: "What animal swims and has fins?", a: "Fish", h: "Lives in water." },
+  { q: "What is 8 - 3?", a: "5", h: "Subtract them." },
+
+  { q: "What animal gives wool?", a: "Sheep", h: "Very fluffy." },
+  { q: "What is 3 + 5?", a: "8", h: "Add them up." },
+  { q: "What shape is a coin?", a: "Circle", h: "Round money." },
+  { q: "What color is chocolate?", a: "Brown", h: "Sweet treat." },
+  { q: "What is 2 + 6?", a: "8", h: "Easy sum." },
+  { q: "How many wings does a bird have?", a: "2", h: "They fly with it." },
+  { q: "What shape is a traffic stop sign?", a: "Octagon", h: "8 sides." },
+  { q: "What is 10 - 5?", a: "5", h: "Half of 10." },
+  { q: "What animal has claws and purrs?", a: "Cat", h: "Soft and cuddly." },
+  { q: "What color are oranges?", a: "Orange", h: "Same as the name!" },
+
+  { q: "What is 3 + 4?", a: "7", h: "Add them together." },
+  { q: "How many horns does a unicorn have?", a: "1", h: "It's magical!" },
+  { q: "What shape has 7 sides?", a: "Heptagon", h: "One more than 6." },
+  { q: "What animal says 'moo'?", a: "Cow", h: "Farm animal." },
+  { q: "What color is coal?", a: "Black", h: "Dark and dusty." },
+  { q: "What is 6 + 1?", a: "7", h: "Count forward." },
+  { q: "What color is a polar bear?", a: "White", h: "Blends with snow." },
+  { q: "What is 8 + 1?", a: "9", h: "Almost 10." },
+  { q: "What animal has a pouch?", a: "Kangaroo", h: "Jumps and lives in Australia." },
+  { q: "What shape has no straight lines?", a: "Circle", h: "Perfectly round." },
+
+  { q: "How many eyes does a typical person have?", a: "2", h: "Look in the mirror." },
+  { q: "What is 5 - 2?", a: "3", h: "Subtract 2." },
+  { q: "What animal has wings but can’t fly?", a: "Penguin", h: "Loves the cold." },
+  { q: "What shape is a soccer ball mostly made of?", a: "Hexagon", h: "Six sides." },
+  { q: "What animal lives in Antarctica?", a: "Penguin", h: "Waddles and slides." },
+  { q: "What color are limes?", a: "Green", h: "Sour like lemons." },
+  { q: "What is 7 - 2?", a: "5", h: "Easy subtraction." },
+  { q: "What is 1 + 8?", a: "9", h: "Add 1 to 8." },
+  { q: "What animal lives in the desert and stores water?", a: "Camel", h: "Has humps." },
+  { q: "What shape is a slice of pizza?", a: "Triangle", h: "Pointy and cheesy." },
+
+  { q: "What is 1 + 1?", a: "2", h: "Add one and one." },
+  { q: "What color is the sky on a clear day?", a: "Blue", h: "Look up during daytime." },
+  { q: "How many legs does a horse have?", a: "4", h: "Same as a dog." },
+  { q: "What shape has three sides?", a: "Triangle", h: "Has 3 corners." },
+  { q: "What do bees make?", a: "Honey", h: "Sweet and sticky." },
+  { q: "What is 2 + 3?", a: "5", h: "Add two and three." },
+  { q: "What color is an apple?", a: "Red", h: "Also green sometimes." },
+  { q: "How many wheels does a bicycle have?", a: "2", h: "Fewer than a car." },
+  { q: "What is 10 - 9?", a: "1", h: "One less than ten." },
+  { q: "What animal says quack?", a: "Duck", h: "Swims in ponds." },
+
+  { q: "What is 4 + 1?", a: "5", h: "Add four and one." },
+  { q: "What color are pumpkins?", a: "Orange", h: "Seen at Halloween." },
+  { q: "How many sides does a pentagon have?", a: "5", h: "More than four." },
+  { q: "What do cows eat?", a: "Grass", h: "Green and grows outside." },
+  { q: "What is 3 + 3?", a: "6", h: "Double three." },
+  { q: "What color is a firetruck?", a: "Red", h: "Bright and loud." },
+  { q: "How many legs does an ant have?", a: "6", h: "More than four." },
+  { q: "What shape has four equal sides?", a: "Square", h: "All sides match." },
+  { q: "What is 7 + 2?", a: "9", h: "Add seven and two." },
+  { q: "What animal is known as man's best friend?", a: "Dog", h: "Barks and wags tail." },
+
+  { q: "What is 8 + 0?", a: "8", h: "Adding zero doesn't change." },
+  { q: "What color are blueberries?", a: "Blue", h: "Small and sweet." },
+  { q: "How many fingers do humans have on one hand?", a: "5", h: "Count your fingers." },
+  { q: "What is 5 - 3?", a: "2", h: "Take away three." },
+  { q: "What shape looks like a stop sign?", a: "Octagon", h: "Eight sides." },
+  { q: "What animal has stripes and lives in the jungle?", a: "Tiger", h: "Big and fierce." },
+  { q: "What is 6 + 3?", a: "9", h: "Add six and three." },
+  { q: "What color is a school bus?", a: "Yellow", h: "Bright and visible." },
+  { q: "How many legs does a crab have?", a: "10", h: "More than a spider." },
+  { q: "What is 2 + 4?", a: "6", h: "Add two and four." },
+
+  { q: "What fruit is sour and yellow?", a: "Lemon", h: "Used in lemonade." },
+  { q: "What shape is a baseball?", a: "Circle", h: "Round and used in sports." },
+  { q: "What animal has a shell and moves slowly?", a: "Turtle", h: "Lives on land and water." },
+  { q: "What is 9 + 1?", a: "10", h: "One more than nine." },
+  { q: "What color is grass?", a: "Green", h: "Grows outside." },
+  { q: "How many legs does a butterfly have?", a: "6", h: "Insect with wings." },
+  { q: "What is 5 + 5?", a: "10", h: "Double five." },
+  { q: "What animal says oink?", a: "Pig", h: "Lives on a farm." },
+  { q: "What shape is a diamond?", a: "Rhombus", h: "Like a tilted square." },
+  { q: "What is 4 + 3?", a: "7", h: "Add four and three." },
+
+  { q: "What color is a carrot?", a: "Orange", h: "Crunchy and healthy." },
+  { q: "What animal lives in the ocean and has eight arms?", a: "Octopus", h: "Has many legs." },
+  { q: "How many legs does a cow have?", a: "4", h: "Farm animal." },
+  { q: "What is 10 - 7?", a: "3", h: "Subtract seven." },
+  { q: "What shape is a pizza slice?", a: "Triangle", h: "Pointy shape." },
+  { q: "What animal has a long tail and climbs trees?", a: "Monkey", h: "Likes bananas." },
+  { q: "What color is chocolate?", a: "Brown", h: "Sweet treat." },
+  { q: "What is 3 + 7?", a: "10", h: "Add three and seven." },
+  { q: "How many wheels does a motorcycle have?", a: "2", h: "Faster than a bike." },
+  { q: "What animal has feathers and flies?", a: "Bird", h: "Has wings." },
+
+  { q: "What is 6 - 4?", a: "2", h: "Subtract four." },
+  { q: "What color are cherries?", a: "Red", h: "Small and round." },
+  { q: "What shape has six sides?", a: "Hexagon", h: "Used in honeycombs." },
+  { q: "What animal lives in water and has fins?", a: "Fish", h: "Swims in water." },
+  { q: "What is 7 + 0?", a: "7", h: "Adding zero doesn't change." },
+  { q: "What color is a pumpkin?", a: "Orange", h: "Used for Halloween." },
+  { q: "How many legs does a frog have?", a: "4", h: "Can jump far." },
+  { q: "What is 8 - 5?", a: "3", h: "Subtract five." },
+  { q: "What animal says baa?", a: "Sheep", h: "Gives wool." },
+  { q: "What shape is a window usually?", a: "Rectangle", h: "Four sides." },
+
+  { q: "What is 9 + 0?", a: "9", h: "Adding zero doesn't change." },
+  { q: "What color is snow?", a: "White", h: "Cold and fluffy." },
+  { q: "How many legs does a duck have?", a: "2", h: "Walks and swims." },
+  { q: "What is 4 - 2?", a: "2", h: "Subtract two." },
+  { q: "What animal has black and white fur and eats bamboo?", a: "Panda", h: "Cute and cuddly." },
+  { q: "What shape has eight sides?", a: "Octagon", h: "Stop sign shape." },
+  { q: "What is 5 + 4?", a: "9", h: "Add five and four." },
+  { q: "What color is a flamingo?", a: "Pink", h: "Bird with long legs." },
+  { q: "How many wheels does a skateboard have?", a: "4", h: "Used for tricks." },
+  { q: "What animal lives in a shell and moves slowly?", a: "Snail", h: "Leaves a trail." },
+  { q: "What color is a banana?", a: "Yellow", h: "It turns brown when old." },
+  { q: "How many fingers do you have?", a: "10", h: "Five on each hand." },
+  { q: "What do you sleep on?", a: "Bed", h: "You lie down on it." },
+  { q: "What is the opposite of hot?", a: "Cold", h: "Like ice cream!" },
+  { q: "What animal says 'moo'?", a: "Cow", h: "Gives us milk." },
+  { q: "What flies in the sky and has wings?", a: "Bird", h: "Not a plane!" },
+  { q: "Which fruit is red and has tiny seeds outside?", a: "Strawberry", h: "Sweet and juicy!" },
+  { q: "What color is the sun?", a: "Yellow", h: "Big and bright." },
+  { q: "What do you wear on your feet outside?", a: "Shoes", h: "Protects your toes." },
+  { q: "What do you do when you're tired at night?", a: "Sleep", h: "Close your eyes!" },
+  { q: "What animal says 'oink'?", a: "Pig", h: "Likes mud." },
+  { q: "What do you eat with a fork?", a: "Food", h: "Goes in your tummy!" },
+  { q: "What is used to color pictures?", a: "Crayons", h: "They come in a box." },
+  { q: "What do you call a baby cat?", a: "Kitten", h: "Tiny and fluffy." },
+  { q: "What’s the color of a fire truck?", a: "Red", h: "Loud and fast!" },
+  { q: "What comes after Tuesday?", a: "Wednesday", h: "Middle of the week." },
+  { q: "What do bees make?", a: "Honey", h: "Sweet and sticky." },
+  { q: "What makes a 'quack' sound?", a: "Duck", h: "Floats in ponds." },
+  { q: "How many legs does a dog have?", a: "4", h: "Same as a cat." },
+  { q: "What keeps the rain out when you're outside?", a: "Umbrella", h: "You hold it up." },
+  { q: "What color is the ocean?", a: "Blue", h: "Covers most of Earth." },
+  { q: "What do you wear on your head in winter?", a: "Hat", h: "Keeps you warm!" },
+  { q: "What do you use to clean your teeth?", a: "Toothbrush", h: "Use it every morning." },
+  { q: "What is the opposite of big?", a: "Small", h: "Tiny!" },
+  { q: "What do you say when you meet someone?", a: "Hello", h: "It's polite!" },
+  { q: "What kind of fruit is round and orange?", a: "Orange", h: "Same name as its color!" },
+  { q: "What do you read at bedtime?", a: "Story", h: "Tells tales!" },
+  { q: "What’s the name of the snowman you build in winter?", a: "Snowman", h: "Made of snow!" },
+  { q: "What do you use to cut paper?", a: "Scissors", h: "Be careful!" },
+  { q: "What do you put your toys in?", a: "Toy box", h: "Keeps your room clean." },
+  { q: "What color are apples usually?", a: "Red", h: "Or green!" },
+  { q: "What do you wear to go swimming?", a: "Swimsuit", h: "Not regular clothes!" },
+  { q: "What do you eat when you're really hungry in the morning?", a: "Breakfast", h: "First meal of the day." },
+  { q: "What helps you see in the dark?", a: "Flashlight", h: "It shines!" },
+  { q: "What do you put on a sandwich?", a: "Bread", h: "On top and bottom!" },
+  { q: "What do you use to open a door?", a: "Key", h: "Turns in a lock." },
+  { q: "What is frozen water called?", a: "Ice", h: "Very cold!" },
+  { q: "What goes 'choo choo'?", a: "Train", h: "Rides on tracks." },
+  { q: "What’s round and bounces?", a: "Ball", h: "Throw it, catch it!" },
+  { q: "What do you do when you're happy?", a: "Smile", h: "Shows your teeth!" },
+  { q: "What animal has a long trunk?", a: "Elephant", h: "Big and gray!" },
+  { q: "What animal says 'neigh'?", a: "Horse", h: "Rides fast." },
+  { q: "What number comes after 19?", a: "20", h: "Two tens!" },
+  { q: "What shape is a clock?", a: "Circle", h: "Round!" },
+  { q: "What covers your eyes from the sun?", a: "Sunglasses", h: "Cool and dark!" },
+  { q: "What goes up and down but doesn’t move?", a: "Stairs", h: "You walk on them." },
+  { q: "What makes you laugh?", a: "Joke", h: "Funny words!" },
+  { q: "Where do fish live?", a: "Water", h: "Not on land!" },
+  { q: "What do you write with on a whiteboard?", a: "Marker", h: "Not a pen!" },
+  { q: "What color is the grass?", a: "Green", h: "Grows in the ground." },
+  { q: "What do you use to drink water?", a: "Cup", h: "You hold it in your hand." },
+  { q: "What is 1 plus 1?", a: "2", h: "Simple math!" },
+  { q: "What do you call your mom's mom?", a: "Grandma", h: "She gives big hugs." },
+  { q: "What goes 'meow'?", a: "Cat", h: "Loves milk." },
+  { q: "What do you write with?", a: "Pencil", h: "Sharpen it!" },
+  { q: "What is the color of the moon?", a: "White", h: "Shines at night." },
+  { q: "What is the shape of a pizza?", a: "Circle", h: "Also like a wheel." },
+  { q: "What animal hops and loves carrots?", a: "Rabbit", h: "Fluffy tail!" },
+  { q: "What makes rainbows?", a: "Rain and Sun", h: "When the sky mixes colors." },
+  { q: "What is the color of coal?", a: "Black", h: "Very dark." },
+  { q: "What goes 'woof'?", a: "Dog", h: "Best friend." },
+  { q: "What animal has stripes and is orange?", a: "Tiger", h: "Big cat!" },
+  { q: "What do you wear on your wrist to tell time?", a: "Watch", h: "Tick-tock." },
+  { q: "What do you eat on your birthday?", a: "Cake", h: "Yummy treat!" },
+  { q: "What do you tie your shoes with?", a: "Laces", h: "Loop and pull!" },
+  { q: "What do you put on pancakes?", a: "Syrup", h: "Sticky and sweet!" },
+  { q: "What’s in the sky at night?", a: "Stars", h: "Tiny twinkles." },
+  { q: "What goes up when it rains?", a: "Umbrella", h: "Keeps you dry." },
+  { q: "What’s the name of a baby dog?", a: "Puppy", h: "So cute!" },
+  { q: "What do you use to erase pencil marks?", a: "Eraser", h: "Rub it!" },
+  { q: "What does Santa ride in?", a: "Sleigh", h: "With reindeer!" },
+  { q: "What does a cow give us?", a: "Milk", h: "In a glass." },
+  { q: "What’s round and tells time?", a: "Clock", h: "Tick-tock again!" },
+  { q: "What do you blow up for parties?", a: "Balloon", h: "Floats in air." },
+  { q: "Where do you go to learn?", a: "School", h: "With a teacher." },
+  { q: "What helps you see?", a: "Eyes", h: "On your face." },
+  { q: "What color is chocolate?", a: "Brown", h: "Yummy!" },
+  { q: "What’s used to cut food?", a: "Knife", h: "Be careful!" },
+  { q: "Where do you wash your hands?", a: "Sink", h: "With soap." },
+  { q: "What shines in the daytime?", a: "Sun", h: "Very bright." },
+  { q: "What food is shaped like a triangle and cheesy?", a: "Pizza", h: "Delicious!" },
+  { q: "What grows on trees and is red or green?", a: "Apple", h: "Keeps doctors away!" },
+  { q: "What animal lives in water and has gills?", a: "Fish", h: "Swims around." },
+  { q: "What do you wear when it's cold?", a: "Jacket", h: "Keeps you warm." },
+  { q: "What animal says 'baa'?", a: "Sheep", h: "Gives us wool." },
+  { q: "What’s soft, white, and falls in winter?", a: "Snow", h: "Covers the ground." },
+  { q: "What do you call your dad's dad?", a: "Grandpa", h: "He tells stories." },
+  { q: "What’s yellow and sour?", a: "Lemon", h: "Makes you squint!" },
+  { q: "What color are carrots?", a: "Orange", h: "Bunnies love them." },
+  { q: "What goes on your feet indoors?", a: "Slippers", h: "Soft and cozy." },
+  { q: "What kind of vehicle has two wheels?", a: "Bicycle", h: "You ride it." },
+  { q: "What helps you hear?", a: "Ears", h: "One on each side." },
+  { q: "What’s the opposite of up?", a: "Down", h: "Like falling." },
+  { q: "What do you color with?", a: "Markers", h: "Bright colors." },
+  { q: "What’s the name of a house for birds?", a: "Nest", h: "In trees." },
+  { q: "What animal lives in a shell?", a: "Turtle", h: "Slow and steady." },
+  { q: "What do you eat soup with?", a: "Spoon", h: "Not a fork!" },
+  { q: "What do you wear on your legs?", a: "Pants", h: "Also called trousers." },
+  { q: "What color is the sky on a clear day?", a: "Blue", h: "Look up!" },
+  { q: "What do bees make?", a: "Honey", h: "Sweet and sticky." },
+  { q: "What do you wear on your head?", a: "Hat", h: "Blocks the sun." },
+  { q: "What do you drink when you're thirsty?", a: "Water", h: "Clear and cool." },
+  { q: "What animal purrs?", a: "Cat", h: "Loves naps." },
+  { q: "What do you use to brush your teeth?", a: "Toothbrush", h: "Keep them clean!" },
+  { q: "What do birds use to fly?", a: "Wings", h: "Flap flap!" },
+  { q: "What is 2 + 3?", a: "5", h: "Use your fingers!" },
+  { q: "Where do you sleep?", a: "Bed", h: "Comfy and warm." },
+  { q: "What color is a banana?", a: "Yellow", h: "Peel it first!" },
+  { q: "What is the name of a baby cat?", a: "Kitten", h: "Tiny meows!" },
+  { q: "What fruit is red and has seeds on the outside?", a: "Strawberry", h: "Sweet and juicy." },
+  { q: "What do you use to cut paper?", a: "Scissors", h: "Careful with it." },
+  { q: "What do frogs say?", a: "Ribbit", h: "Lives in ponds." },
+  { q: "What do you wear on your eyes in the sun?", a: "Sunglasses", h: "Protects from light." },
+  { q: "What is the name of the planet we live on?", a: "Earth", h: "Blue and green." },
+  { q: "What animal has a long trunk?", a: "Elephant", h: "Big and gray." },
+  { q: "What is the color of fire?", a: "Red", h: "Very hot!" },
+  { q: "Where do fish live?", a: "Water", h: "In oceans and tanks." },
+  { q: "What do you wear on your feet outside?", a: "Shoes", h: "Lace them up!" },
+  { q: "What time of day do you eat breakfast?", a: "Morning", h: "After waking up." },
+  { q: "What fruit is shaped like a crescent?", a: "Banana", h: "Monkeys love it." },
+  { q: "What animal has a mane and roars?", a: "Lion", h: "King of the jungle!" },
+  { q: "What do you carry your books in?", a: "Backpack", h: "Straps on your shoulders." },
+  { q: "What’s the name of a house made of ice?", a: "Igloo", h: "In very cold places." },
+  { q: "What color is the sun?", a: "Yellow", h: "Hot and bright." },
+  { q: "What do you wear to see better?", a: "Glasses", h: "On your nose." },
+  { q: "What do chickens lay?", a: "Eggs", h: "We eat them boiled or fried." },
+  { q: "What do you eat with spaghetti?", a: "Fork", h: "Twirl it!" },
+  { q: "What’s used to keep food cold?", a: "Fridge", h: "Stays cool inside." },
+  { q: "What is the name of a baby cow?", a: "Calf", h: "Lives on a farm." },
+  { q: "What animal climbs trees and eats bananas?", a: "Monkey", h: "Swings around!" },
+  { q: "What color is a lemon?", a: "Yellow", h: "Very sour!" },
+  { q: "What flies and has colorful wings?", a: "Butterfly", h: "Starts as a caterpillar." },
+  { q: "What do you need to open a locked door?", a: "Key", h: "Fits in the lock." },
+  { q: "What makes a 'tick-tock' sound?", a: "Clock", h: "Tells time." },
+  { q: "What shines bright in the sky at night?", a: "Moon", h: "Glows above us." },
+  { q: "What do you use to draw?", a: "Crayon", h: "Wax and colorful." },
+  { q: "What keeps you warm in bed?", a: "Blanket", h: "Soft and cozy." },
+  { q: "What makes your clothes clean?", a: "Washing machine", h: "Spins and washes." },
+  { q: "What lives in a pond and croaks?", a: "Frog", h: "Green and jumps!" },
+  { q: "What food is made from milk?", a: "Cheese", h: "Goes on sandwiches." },
+  { q: "What helps a boat move?", a: "Oars", h: "You row with them." },
+  { q: "What goes up and never comes down?", a: "Age", h: "You grow older." },
+  { q: "What color are blueberries?", a: "Blue", h: "In the name!" },
+  { q: "What do you wear in the rain?", a: "Raincoat", h: "Keeps you dry." },
+  { q: "What is full of pages and tells a story?", a: "Book", h: "You read it." },
+  { q: "What keeps your hair tidy?", a: "Comb", h: "Use it every morning." },
+  { q: "What’s cold, sweet, and melts?", a: "Ice cream", h: "Summer favorite!" }
+
+    ];
+
+    let current = {};
+    let coins = 100;
+
+    function updateCoins(amount) {
+      coins += amount;
+      document.getElementById("coins").innerText = coins;
+      document.getElementById("watch-ad").style.display = coins <= 0 ? "block" : "none";
+    }
+
+    function startQuiz() {
+      document.getElementById("intro").style.display = "none";
+      document.getElementById("quiz").style.display = "block";
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const randomIndex = Math.floor(Math.random() * questions.length);
+      current = questions[randomIndex];
+      document.getElementById("question").innerText = current.q;
+      document.getElementById("answer").value = "";
+      document.getElementById("hint").innerText = "";
+      document.getElementById("feedback").innerText = "";
+      document.getElementById("feedback").className = "";
+    }
+
+    function checkAnswer() {
+      const input = document.getElementById("answer").value.trim().toLowerCase();
+      const correct = current.a.toLowerCase();
+      const feedback = document.getElementById("feedback");
+      if (input === correct) {
+        feedback.innerText = "✅ Correct! Here's your next question.";
+        feedback.className = "correct";
+        setTimeout(() => {
+          feedback.innerText = "";
+          loadQuestion();
+        }, 1500);
+      } else {
+        feedback.innerText = "❌ Nope, try again.";
+        feedback.className = "wrong";
+      }
+    }
+
+    function showHint() {
+      if (coins < 10) {
+        alert("Not enough coins for a hint!");
+        return;
+      }
+      updateCoins(-10);
+      document.getElementById("hint").innerText = "🧠 Hint: " + current.h;
+    }
+
+    function showAnswer() {
+      if (coins < 20) {
+        alert("Not enough coins to show the answer!");
+        return;
+      }
+      updateCoins(-20);
+      document.getElementById("hint").innerText = "✅ Answer: " + current.a;
+    }
+
+    function watchAd() {
+      alert("Ad watched! +40 coins earned.");
+      updateCoins(40);
+    }
+
+    document.getElementById("answer").addEventListener("focus", () => {
+  setTimeout(() => {
+    document.getElementById("answer").scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 300);
+});
+
+  </script>
+
+</body>
+</html>
